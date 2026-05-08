@@ -12,6 +12,10 @@ from telegram.ext import (
 )
 from questions import QUIZ_DATA
 
+# Setup proxy for PythonAnywhere environment (Httpx will pick this up automatically)
+os.environ['http_proxy'] = "http://proxy.server:3128"
+os.environ['https_proxy'] = "http://proxy.server:3128"
+
 # Load environment variables
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -24,13 +28,12 @@ logging.basicConfig(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Welcome message."""
     await update.message.reply_text(
-        "Привет! 👋 Я готов к викторине.\n\n"
+        "Привет! 👋 Я готов к викторине. Теперь вопросы всегда случайные и настроены через системный прокси для стабильности.\n\n"
         "Нажми /quiz, чтобы начать!"
     )
 
 async def start_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts the quiz with randomized questions."""
-    # Randomize questions for this session
     user_questions = random.sample(QUIZ_DATA, len(QUIZ_DATA))
     
     context.user_data["questions"] = user_questions
@@ -74,9 +77,10 @@ async def send_next_poll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     except Exception as e:
         logging.error(f"Failed to send poll: {e}")
-        # Basic retry logic for network fluctuations
-        await asyncio.sleep(1)
-        await send_next_poll(update, context)
+        # Retry logic for 503 errors
+        if "503" in str(e) or "Network" in str(e) or "Proxy" in str(e):
+            await asyncio.sleep(3)
+            await send_next_poll(update, context)
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the user's answer."""
@@ -96,12 +100,12 @@ if __name__ == "__main__":
         print("Error: TELEGRAM_TOKEN not found in .env")
         exit(1)
         
-    # Standard application build (no proxy)
+    # Build application (Httpx will use os.environ proxies automatically)
     app = ApplicationBuilder().token(TOKEN).build()
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("quiz", start_quiz))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
     
-    print("Бот запущен (Clean Mode)...")
+    print("Бот запущен (System Proxy Mode)...")
     app.run_polling()
