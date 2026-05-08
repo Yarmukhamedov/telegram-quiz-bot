@@ -54,11 +54,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! 👋 Я твой личный тренажер. Все команды — в меню слева! ⬇️")
 
 async def show_categories(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("🐍 Python", callback_data="cat_python"), InlineKeyboardButton("🛠 Git", callback_data="cat_git")],
-        [InlineKeyboardButton("💻 Terminal", callback_data="cat_terminal"), InlineKeyboardButton("🎨 HTML/CSS", callback_data="cat_html_css")],
-        [InlineKeyboardButton("🌐 SSH/OS", callback_data="cat_ssh_os"), InlineKeyboardButton("🎲 Всё вперемешку", callback_data="cat_all")],
-    ]
+    """Dynamically generates category selection buttons from QUIZ_DATA."""
+    # Get unique categories from data
+    unique_cats = sorted(list(set(q["category"] for q in QUIZ_DATA)))
+    
+    keyboard = []
+    row = []
+    for i, cat in enumerate(unique_cats):
+        # Create a nice label (capitalize and replace underscores)
+        label = cat.replace("_", " ").capitalize()
+        # Add emoji based on name if possible (optional flair)
+        emoji_map = {"python": "🐍 ", "git": "🛠 ", "terminal": "💻 ", "html_css": "🎨 ", "ssh": "🌐 ", "os": "🖥 "}
+        btn_text = f"{emoji_map.get(cat, '📁 ')}{label}"
+        
+        row.append(InlineKeyboardButton(btn_text, callback_data=f"cat_{cat}"))
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+    if row: keyboard.append(row)
+    
+    # Always add "All" option
+    keyboard.append([InlineKeyboardButton("🎲 Всё вперемешку", callback_data="cat_all")])
+    
     await update.message.reply_text("Выбери тему:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def category_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -88,9 +105,10 @@ async def start_quiz_logic(message, context, difficulty):
     is_blitz = context.user_data.get("is_blitz", False)
     user_id = message.chat_id
     
-    if category == "all": filtered = QUIZ_DATA
-    elif category == "ssh_os": filtered = [q for q in QUIZ_DATA if q["category"] in ["ssh", "os"]]
-    else: filtered = [q for q in QUIZ_DATA if q["category"] == category]
+    if category == "all": 
+        filtered = QUIZ_DATA
+    else: 
+        filtered = [q for q in QUIZ_DATA if q["category"] == category]
         
     if difficulty != "any": filtered = [q for q in filtered if q["difficulty"] == difficulty]
     if not filtered:
@@ -110,14 +128,11 @@ async def start_quiz_logic(message, context, difficulty):
     await send_next_poll(context)
 
 async def blitz_timeout_job(context: ContextTypes.DEFAULT_TYPE):
-    """Fallback: Force next question if user didn't answer poll in time."""
     job_data = context.job.data
     user_id = job_data["user_id"]
     q_index = job_data["question_index"]
-    
     user_data = context.application.user_data.get(user_id)
     if user_data and user_data.get("current_question") == q_index:
-        # User missed the timeout
         add_wrong_answer(user_id, job_data["question_text"])
         user_data["current_question"] += 1
         await send_next_poll_custom(context, user_data)
@@ -140,7 +155,6 @@ async def send_next_poll_custom(context, user_data):
 
     question_data = questions[index]
     open_period = 20 if is_blitz else None
-
     try:
         message = await context.bot.send_poll(
             chat_id=chat_id, question=f"[{index + 1}/{len(questions)}] {question_data['question']}",
@@ -150,36 +164,28 @@ async def send_next_poll_custom(context, user_data):
         poll_id = message.poll.id
         context.bot_data[poll_id] = {"user_id": user_data.get("user_id"), "correct_option_id": question_data["correct_index"], 
                                      "question_text": question_data["question"], "question_index": index}
-        
-        # Schedule a timeout job for Blitz mode
         if is_blitz:
             context.job_queue.run_once(blitz_timeout_job, when=22, name=f"timeout_{poll_id}", 
                                       data={"user_id": user_data.get("user_id"), "question_index": index, 
                                             "question_text": question_data["question"]})
     except Exception as e:
-        logging.error(f"Error sending poll: {e}")
+        logging.error(f"Error: {e}")
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     answer = update.poll_answer
     poll_id = answer.poll_id
     poll_info = context.bot_data.get(poll_id)
     if not poll_info: return
-
     user_id = poll_info["user_id"]
     user_data = context.application.user_data.get(user_id)
     if not user_data or user_data.get("current_question") != poll_info["question_index"]: return
-
-    # Cancel the timeout job if it exists
     jobs = context.job_queue.get_jobs_by_name(f"timeout_{poll_id}")
     for job in jobs: job.schedule_removal()
-
     user_data["username"] = answer.user.first_name
     if answer.option_ids and answer.option_ids[0] == poll_info["correct_option_id"]:
         user_data["score"] = user_data.get("score", 0) + 1
         remove_wrong_answer(user_id, poll_info["question_text"])
-    else:
-        add_wrong_answer(user_id, poll_info["question_text"])
-
+    else: add_wrong_answer(user_id, poll_info["question_text"])
     user_data["current_question"] += 1
     context.bot_data.pop(poll_id, None)
     await send_next_poll_custom(context, user_data)
@@ -223,11 +229,8 @@ async def daily_question(context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == "__main__":
     if not TOKEN: exit(1)
-    
-    # Improved request settings for PythonAnywhere stability
     request = HTTPXRequest(connect_timeout=20, read_timeout=20)
     app = ApplicationBuilder().token(TOKEN).request(request).post_init(post_init).build()
-    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("quiz", show_categories))
     app.add_handler(CommandHandler("blitz", start_blitz))
@@ -238,6 +241,5 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(category_callback, pattern="^cat_"))
     app.add_handler(CallbackQueryHandler(difficulty_callback, pattern="^diff_"))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
-    
-    print("Бот в разработке (Robust Timeout + 503 Mitigation)...")
+    print("Бот в разработке (Dynamic Categories!)...")
     app.run_polling(drop_pending_updates=True)
