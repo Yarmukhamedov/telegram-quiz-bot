@@ -36,7 +36,7 @@ logging.basicConfig(
 )
 
 async def post_init(application):
-    """Sets up bot commands menu in Telegram UI."""
+    """Sets up bot commands menu."""
     commands = [
         BotCommand("start", "🏠 Главное меню"),
         BotCommand("quiz", "🚀 Начать викторину"),
@@ -47,14 +47,12 @@ async def post_init(application):
         BotCommand("subscribe", "⏰ Подписка на вопрос дня"),
     ]
     await application.bot.set_my_commands(commands)
-    print("Командное меню успешно установлено.")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Welcome message."""
     await update.message.reply_text(
         "Привет! 👋 Я твой личный ИИ-тренажер по программированию.\n\n"
-        "Теперь все команды доступны в кнопке 'Меню' слева! ⬇️\n\n"
-        "Выбирай нужный режим и начинай прокачку."
+        "Все команды доступны в меню слева. ⬇️"
     )
 
 async def show_categories(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -65,7 +63,7 @@ async def show_categories(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🌐 SSH/OS", callback_data="cat_ssh_os"), InlineKeyboardButton("🎲 Всё вперемешку", callback_data="cat_all")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Выбери тему викторины:", reply_markup=reply_markup)
+    await update.message.reply_text("Выбери тему:", reply_markup=reply_markup)
 
 async def category_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -87,26 +85,18 @@ async def difficulty_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
     difficulty = query.data.replace("diff_", "")
-    await start_quiz_logic(query, context, difficulty)
+    
+    # Store message ID to delete it later
+    context.user_data["menu_message_id"] = query.message.message_id
+    await start_quiz_logic(query.message, context, difficulty)
 
 async def start_blitz(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Starts blitz mode directly."""
+    """Starts blitz mode."""
     context.user_data["is_blitz"] = True
     context.user_data["temp_category"] = "all"
-    
-    # Simple message to show it started
-    msg = await update.message.reply_text("⚡️ Запускаю БЛИЦ-РЕЖИМ...")
-    
-    # Create a dummy query-like object for logic
-    class DummyQuery:
-        def __init__(self, msg):
-            self.message = msg
-        async def edit_message_text(self, text):
-            await self.message.edit_text(text)
-    
-    await start_quiz_logic(DummyQuery(msg), context, "any")
+    await start_quiz_logic(update.message, context, "any")
 
-async def start_quiz_logic(query, context, difficulty):
+async def start_quiz_logic(message, context, difficulty):
     category = context.user_data.get("temp_category", "all")
     is_blitz = context.user_data.get("is_blitz", False)
     
@@ -121,9 +111,7 @@ async def start_quiz_logic(query, context, difficulty):
         filtered = [q for q in filtered if q["difficulty"] == difficulty]
 
     if not filtered:
-        msg = "В этой категории нет таких вопросов."
-        if hasattr(query, 'edit_message_text'): await query.edit_message_text(msg)
-        else: await query.message.reply_text(msg)
+        await message.reply_text("Вопросов не найдено. Выбери другое!")
         return
 
     num_q = min(10, len(filtered))
@@ -132,25 +120,26 @@ async def start_quiz_logic(query, context, difficulty):
     context.user_data["questions"] = user_questions
     context.user_data["current_question"] = 0
     context.user_data["score"] = 0
-    context.user_data["chat_id"] = query.message.chat_id
+    context.user_data["chat_id"] = message.chat_id
     context.user_data["category_name"] = "blitz" if is_blitz else category
     context.user_data["difficulty_name"] = difficulty
     
-    mode_text = "⚡️ БЛИЦ" if is_blitz else f"{category.upper()} ({difficulty})"
-    msg_text = f"Начинаем! Режим: {mode_text} 🚀"
-    
-    if hasattr(query, 'edit_message_text'): await query.edit_message_text(msg_text)
-    else: await query.message.reply_text(msg_text)
-    
+    # DELETE the menu message to avoid "jumping"
+    menu_id = context.user_data.get("menu_message_id")
+    if menu_id:
+        try:
+            await context.bot.delete_message(chat_id=message.chat_id, message_id=menu_id)
+        except:
+            pass
+
     await send_next_poll(context)
 
 async def start_errors_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Starts a quiz based on previous wrong answers."""
+    """Starts errors quiz."""
     chat_id = update.effective_chat.id
     error_texts = get_user_errors(chat_id)
-    
     if not error_texts:
-        await update.message.reply_text("У тебя пока нет ошибок! Ты просто гений. 😎")
+        await update.message.reply_text("Ошибок нет! ✨")
         return
     
     error_questions = [q for q in QUIZ_DATA if q["question"] in error_texts]
@@ -164,7 +153,6 @@ async def start_errors_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["difficulty_name"] = "review"
     context.user_data["is_blitz"] = False
     
-    await update.message.reply_text(f"Работаем над ошибками ({len(error_questions)} шт.) 🧠")
     await send_next_poll(context)
 
 async def send_next_poll(context: ContextTypes.DEFAULT_TYPE):
@@ -177,7 +165,7 @@ async def send_next_poll(context: ContextTypes.DEFAULT_TYPE):
         score = context.user_data.get("score", 0)
         update_user_stats(chat_id, context.user_data.get("username", "User"), score, len(questions), 
                          context.user_data.get("category_name"), context.user_data.get("difficulty_name"))
-        await context.bot.send_message(chat_id=chat_id, text=f"🏁 Викторина окончена!\n\nТвой результат: {score} из {len(questions)}.")
+        await context.bot.send_message(chat_id=chat_id, text=f"🏁 Окончено! Результат: {score}/{len(questions)}.")
         return
 
     question_data = questions[index]
@@ -200,7 +188,7 @@ async def send_next_poll(context: ContextTypes.DEFAULT_TYPE):
             "question_text": question_data["question"]
         }
     except Exception as e:
-        logging.error(f"Error sending poll: {e}")
+        logging.error(f"Error: {e}")
         await send_next_poll(context)
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -221,37 +209,33 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data["current_question"] = context.user_data.get("current_question", 0) + 1
     await send_next_poll(context)
 
+# ... (rest of functions like subscribe, stats, top stay same) ...
+
 async def daily_question(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
     question_data = random.choice(QUIZ_DATA)
-    await context.bot.send_message(chat_id=chat_id, text="⏰ Твой ежедневный вопрос!")
-    await context.bot.send_poll(
-        chat_id=chat_id,
-        question=f"Вопрос дня: {question_data['question']}",
-        options=question_data["options"],
-        type=Poll.QUIZ,
-        correct_option_id=question_data["correct_index"],
-        explanation=question_data["explanation"],
-        is_anonymous=False
-    )
+    await context.bot.send_message(chat_id=chat_id, text="⏰ Вопрос дня!")
+    await context.bot.send_poll(chat_id=chat_id, question=question_data['question'], options=question_data['options'], 
+                               type=Poll.QUIZ, correct_option_id=question_data['correct_index'], 
+                               explanation=question_data['explanation'], is_anonymous=False)
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     jobs = context.job_queue.get_jobs_by_name(str(chat_id))
     for job in jobs: job.schedule_removal()
     context.job_queue.run_daily(daily_question, time=time(10, 0, 0), chat_id=chat_id, name=str(chat_id))
-    await update.message.reply_text("✅ Подписка оформлена! Жди вопрос каждый день в 10:00.")
+    await update.message.reply_text("✅ Подписан!")
 
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_chat.id
     total_score, completed = get_user_stats(user_id)
     errors_count = len(get_user_errors(user_id))
-    await update.message.reply_text(f"📊 Статистика:\n✅ Тестов: {completed}\n⭐ Очков: {total_score}\n❌ Ошибок: {errors_count}")
+    await update.message.reply_text(f"📊 Тестов: {completed}\n⭐ Очков: {total_score}\n❌ Ошибок: {errors_count}")
 
 async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
     top_users = get_top_users()
     if not top_users: return
-    text = "🏆 Топ-5 лидеров:\n\n"
+    text = "🏆 Топ лидеров:\n\n"
     for i, (name, score) in enumerate(top_users, 1):
         text += f"{i}. {name} — {score}\n"
     await update.message.reply_text(text)
@@ -259,7 +243,6 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     if not TOKEN: exit(1)
     app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
-    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("quiz", show_categories))
     app.add_handler(CommandHandler("blitz", start_blitz))
@@ -267,10 +250,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("top", top))
     app.add_handler(CommandHandler("subscribe", subscribe))
-    
     app.add_handler(CallbackQueryHandler(category_callback, pattern="^cat_"))
     app.add_handler(CallbackQueryHandler(difficulty_callback, pattern="^diff_"))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
-    
-    print("Бот в режиме разработки (Commands Menu added)...")
+    print("Бот в разработке (Fix Jumping)...")
     app.run_polling()
