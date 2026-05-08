@@ -1,5 +1,5 @@
 QUIZ_DATA = [
-    # --- EXISTING QUESTIONS (1-35) ---
+    # --- PREVIOUS QUESTIONS (1-81) ---
     {
         "question": "Что такое IDE?",
         "options": ["Интегрированная среда разработки", "Тип ОС", "Команда терминала", "Язык программирования"],
@@ -280,8 +280,6 @@ QUIZ_DATA = [
         "category": "terminal",
         "difficulty": "easy"
     },
-
-    # --- NEW QUESTIONS (36-80+) ---
     {
         "question": "Как создать новую ветку в Git?",
         "options": ["git branch-new", "git checkout -b", "git add-branch", "git commit -b"],
@@ -608,6 +606,247 @@ QUIZ_DATA = [
         "correct_index": 1,
         "explanation": "Символ & в конце команды запускает её в фоновом режиме терминала.",
         "category": "terminal",
+        "difficulty": "hard"
+    },
+    # --- NEW QUESTIONS (82-132) ---
+    {
+        "question": "Что такое 'рекурсия' в программировании?",
+        "options": ["Цикл for", "Функция, вызывающая саму себя", "Ошибка компиляции", "Тип данных"],
+        "correct_index": 1,
+        "explanation": "Рекурсия — это когда функция вызывает себя для решения более мелкой подзадачи.",
+        "category": "general",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в Python создать генератор списка (list comprehension) из чисел от 0 до 9?",
+        "options": ["[x for x in range(10)]", "{x for x in range(10)}", "(x for x in range(10))", "[range(10)]"],
+        "correct_index": 0,
+        "explanation": "[x for x in range(10)] — это компактный способ создания списка.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает блок 'finally' в конструкции try-except?",
+        "options": ["Выполняется только при ошибке", "Выполняется всегда, независимо от наличия ошибки", "Останавливает программу", "Пропускает ошибку"],
+        "correct_index": 1,
+        "explanation": "Finally полезен для закрытия файлов или соединений, которые должны быть закрыты в любом случае.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Для чего нужен оператор 'yield' в Python?",
+        "options": ["Для выхода из цикла", "Для создания функции-генератора", "Для удаления переменной", "Для импорта модуля"],
+        "correct_index": 1,
+        "explanation": "Yield возвращает значение и 'замораживает' состояние функции до следующего вызова.",
+        "category": "python",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в Python скопировать список 'a' в список 'b' так, чтобы они были независимы?",
+        "options": ["b = a", "b = a.copy()", "b = set(a)", "b = move(a)"],
+        "correct_index": 1,
+        "explanation": "Метод copy() или срез a[:] создают новый объект в памяти.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'git cherry-pick'?",
+        "options": ["Удаление ветки", "Применение конкретного коммита из одной ветки в другую", "Сборка проекта", "Очистка репозитория"],
+        "correct_index": 1,
+        "explanation": "Cherry-pick позволяет перенести только один нужный коммит, не сливая ветки целиком.",
+        "category": "git",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в Git отменить коммит, создав новый 'обратный' коммит?",
+        "options": ["git reset", "git revert", "git remove", "git undo"],
+        "correct_index": 1,
+        "explanation": "Revert — безопасный способ отмены, так как он не меняет историю, а добавляет новую запись.",
+        "category": "git",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает команда 'git remote -v'?",
+        "options": ["Удаляет сервер", "Показывает список адресов удаленных репозиториев", "Меняет версию Git", "Создает новую ветку"],
+        "correct_index": 1,
+        "explanation": "Флаг -v (verbose) выводит URL для fetch и push.",
+        "category": "git",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как в Git посмотреть разницу между рабочим каталогом и последним коммитом?",
+        "options": ["git diff", "git show", "git status", "git check"],
+        "correct_index": 0,
+        "explanation": "git diff показывает все незакоммиченные изменения в коде.",
+        "category": "git",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Для чего нужна команда 'git clone --depth 1'?",
+        "options": ["Для полного копирования", "Для быстрого копирования только последнего коммита (без всей истории)", "Для клонирования скрытых веток", "Для удаления проекта"],
+        "correct_index": 1,
+        "explanation": "Shallow clone экономит время и место, если вам не нужна вся история изменений.",
+        "category": "git",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в терминале изменить владельца файла?",
+        "options": ["chmod", "chown", "chgrp", "access"],
+        "correct_index": 1,
+        "explanation": "chown (change owner) позволяет сменить пользователя-владельца и группу файла.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает команда 'alias g=\"git status\"'?",
+        "options": ["Удаляет Git", "Создает короткий псевдоним 'g' для длинной команды", "Переименовывает Git", "Создает папку 'g'"],
+        "correct_index": 1,
+        "explanation": "Алиасы ускоряют работу, позволяя не печатать длинные команды целиком.",
+        "category": "terminal",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Как в терминале дописать текст в конец файла, не стирая его содержимое?",
+        "options": ["echo 'text' > file.txt", "echo 'text' >> file.txt", "echo 'text' | file.txt", "append 'text' file.txt"],
+        "correct_index": 1,
+        "explanation": "'>' перезаписывает файл, а '>>' добавляет в конец.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает флаг '-i' в команде grep?",
+        "options": ["Игнорирует регистр (A и a — одно и то же)", "Показывает номера строк", "Ищет только в папках", "Инвертирует поиск"],
+        "correct_index": 0,
+        "explanation": "Флаг -i (ignore-case) делает поиск нечувствительным к регистру.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как в терминале Linux посмотреть объем оперативной памяти?",
+        "options": ["mem", "ram", "free -h", "show ram"],
+        "correct_index": 2,
+        "explanation": "Команда free показывает использование RAM и Swap.",
+        "category": "os",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что такое 'root' в Linux?",
+        "options": ["Обычный пользователь", "Суперпользователь с неограниченными правами", "Название папки с программами", "Командная строка"],
+        "correct_index": 1,
+        "explanation": "Root может изменять любые файлы в системе, поэтому работать под ним постоянно опасно.",
+        "category": "os",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Для чего используется команда 'scp'?",
+        "options": ["Для удаления файлов", "Для безопасного копирования файлов между компьютерами по сети", "Для просмотра картинок", "Для сканирования портов"],
+        "correct_index": 1,
+        "explanation": "SCP (Secure Copy) работает через протокол SSH.",
+        "category": "ssh",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'ssh-agent'?",
+        "options": ["Вирус в системе", "Программа для хранения закрытых ключей в памяти", "Сервер для SSH", "Тип шифрования"],
+        "correct_index": 1,
+        "explanation": "SSH-agent позволяет не вводить пароль от ключа каждый раз при подключении.",
+        "category": "ssh",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в CSS создать переменную?",
+        "options": ["$var: 10px;", "--my-var: 10px;", "var-my: 10px;", "@var: 10px;"],
+        "correct_index": 1,
+        "explanation": "Кастомные свойства в CSS начинаются с двойного дефиса.",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'CSS Specificity' (специфичность)?",
+        "options": ["Скорость загрузки CSS", "Правила приоритета стилей (какой стиль победит)", "Адаптивность сайта", "Валидность кода"],
+        "correct_index": 1,
+        "explanation": "Стили по ID важнее стилей по классу, а те важнее стилей по тегу.",
+        "category": "html_css",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в CSS применить анимацию 'my-anim', которая длится 2 секунды?",
+        "options": ["animation: my-anim 2s;", "animate: my-anim 2s;", "transition: my-anim 2s;", "keyframe: my-anim 2s;"],
+        "correct_index": 0,
+        "explanation": "Свойство animation связывает элемент с правилом @keyframes.",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает свойство 'box-sizing: border-box'?",
+        "options": ["Скругляет углы", "Включает padding и border в общую ширину элемента", "Добавляет тень", "Делает элемент невидимым"],
+        "correct_index": 1,
+        "explanation": "Это упрощает верстку, так как размеры элемента не 'раздуваются' от отступов.",
+        "category": "html_css",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Какая файловая система является стандартной для современных Linux?",
+        "options": ["NTFS", "FAT32", "ext4", "APFS"],
+        "correct_index": 2,
+        "explanation": "ext4 — четвертая версия расширенной файловой системы Linux.",
+        "category": "os",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'UID' в Linux?",
+        "options": ["Уникальный ID устройства", "Уникальный ID пользователя в системе", "Версия ядра", "Тип процессора"],
+        "correct_index": 1,
+        "explanation": "По UID система понимает, какой пользователь владеет файлом (у root UID всегда 0).",
+        "category": "os",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Какая команда в терминале позволяет переименовать файл 'a.txt' в 'b.txt'?",
+        "options": ["rename a.txt b.txt", "mv a.txt b.txt", "cp a.txt b.txt", "edit a.txt b.txt"],
+        "correct_index": 1,
+        "explanation": "mv (move) используется и для перемещения, и для переименования.",
+        "category": "terminal",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Как в Python получить последний элемент списка 'L'?",
+        "options": ["L[last]", "L[-1]", "L[end]", "L.last()"],
+        "correct_index": 1,
+        "explanation": "Отрицательные индексы в Python считают элементы с конца.",
+        "category": "python",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что делает метод 'string.strip()' в Python?",
+        "options": ["Переводит в верхний регистр", "Удаляет пробелы в начале и в конце строки", "Разбивает строку на части", "Заменяет символы"],
+        "correct_index": 1,
+        "explanation": "Strip убирает лишние невидимые символы (пробелы, переносы строк).",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Для чего используется тег <meta charset='UTF-8'>?",
+        "options": ["Для вставки стилей", "Для указания кодировки символов на странице", "Для подключения скриптов", "Для заголовка сайта"],
+        "correct_index": 1,
+        "explanation": "Это гарантирует, что браузер правильно отобразит кириллицу и спецсимволы.",
+        "category": "html_css",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что такое 'Media Queries' в CSS?",
+        "options": ["Запросы к базе данных", "Стили для адаптации под разные размеры экранов", "Проигрыватель видео", "Список шрифтов"],
+        "correct_index": 1,
+        "explanation": "С помощью @media можно менять дизайн сайта для телефонов и планшетов.",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Какая команда в Git удаляет файл из репозитория, но оставляет его на диске?",
+        "options": ["git rm file.txt", "git rm --cached file.txt", "git delete file.txt", "git ignore file.txt"],
+        "correct_index": 1,
+        "explanation": "--cached удаляет файл только из индекса (коммита).",
+        "category": "git",
         "difficulty": "hard"
     }
 ]
