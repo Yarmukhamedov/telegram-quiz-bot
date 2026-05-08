@@ -4,7 +4,6 @@ import random
 import asyncio
 from dotenv import load_dotenv
 from telegram import Update, Poll
-from telegram.request import HTTPXRequest
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -12,6 +11,10 @@ from telegram.ext import (
     PollAnswerHandler,
 )
 from questions import QUIZ_DATA
+
+# Setup proxy for PythonAnywhere environment (Httpx will pick this up automatically)
+os.environ['http_proxy'] = "http://proxy.server:3128"
+os.environ['https_proxy'] = "http://proxy.server:3128"
 
 # Load environment variables
 load_dotenv()
@@ -22,13 +25,10 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-# Proxy for PythonAnywhere Free Tier
-PROXY_URL = "http://proxy.server:3128"
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Welcome message."""
     await update.message.reply_text(
-        "Привет! 👋 Я готов к викторине. Теперь вопросы всегда случайные и настроены через прокси для стабильности на PythonAnywhere.\n\n"
+        "Привет! 👋 Я готов к викторине. Теперь вопросы всегда случайные и настроены через системный прокси для стабильности.\n\n"
         "Нажми /quiz, чтобы начать!"
     )
 
@@ -77,8 +77,9 @@ async def send_next_poll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     except Exception as e:
         logging.error(f"Failed to send poll: {e}")
-        if "503" in str(e) or "Network" in str(e):
-            await asyncio.sleep(2)
+        # Retry logic for 503 errors
+        if "503" in str(e) or "Network" in str(e) or "Proxy" in str(e):
+            await asyncio.sleep(3)
             await send_next_poll(update, context)
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -99,18 +100,12 @@ if __name__ == "__main__":
         print("Error: TELEGRAM_TOKEN not found in .env")
         exit(1)
         
-    # Build application with Proxy using HTTPXRequest (Correct way for PTB v20+)
-    request = HTTPXRequest(proxy_url=PROXY_URL)
-    app = (
-        ApplicationBuilder()
-        .token(TOKEN)
-        .request(request)
-        .build()
-    )
+    # Build application (Httpx will use os.environ proxies automatically)
+    app = ApplicationBuilder().token(TOKEN).build()
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("quiz", start_quiz))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
     
-    print("Бот запущен с поддержкой прокси (HTTPXRequest)...")
+    print("Бот запущен (System Proxy Mode)...")
     app.run_polling()
