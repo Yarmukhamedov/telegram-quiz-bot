@@ -4,6 +4,7 @@ import random
 import asyncio
 from dotenv import load_dotenv
 from telegram import Update, Poll
+from telegram.request import HTTPXRequest
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -76,7 +77,6 @@ async def send_next_poll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     except Exception as e:
         logging.error(f"Failed to send poll: {e}")
-        # Notify user and try again if it's a transient network error
         if "503" in str(e) or "Network" in str(e):
             await asyncio.sleep(2)
             await send_next_poll(update, context)
@@ -88,11 +88,9 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if not poll_info:
         return
 
-    # Check answer
     if answer.option_ids[0] == poll_info["correct_option_id"]:
         context.user_data["score"] = context.user_data.get("score", 0) + 1
 
-    # Progress to next
     context.user_data["current_question"] = context.user_data.get("current_question", 0) + 1
     await send_next_poll(update, context)
 
@@ -101,12 +99,12 @@ if __name__ == "__main__":
         print("Error: TELEGRAM_TOKEN not found in .env")
         exit(1)
         
-    # Build application with Proxy settings
+    # Build application with Proxy using HTTPXRequest (Correct way for PTB v20+)
+    request = HTTPXRequest(proxy_url=PROXY_URL)
     app = (
         ApplicationBuilder()
         .token(TOKEN)
-        .proxy_url(PROXY_URL)
-        .get_updates_proxy_url(PROXY_URL)
+        .request(request)
         .build()
     )
     
@@ -114,5 +112,5 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("quiz", start_quiz))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
     
-    print("Бот запущен с поддержкой прокси...")
+    print("Бот запущен с поддержкой прокси (HTTPXRequest)...")
     app.run_polling()
