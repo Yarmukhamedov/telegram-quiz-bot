@@ -4,7 +4,7 @@ import random
 import asyncio
 from datetime import time
 from dotenv import load_dotenv
-from telegram import Update, Poll, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, Poll, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -35,17 +35,26 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+async def post_init(application):
+    """Sets up bot commands menu in Telegram UI."""
+    commands = [
+        BotCommand("start", "🏠 Главное меню"),
+        BotCommand("quiz", "🚀 Начать викторину"),
+        BotCommand("blitz", "⚡️ Блиц-режим (20 сек)"),
+        BotCommand("errors", "🔄 Работа над ошибками"),
+        BotCommand("stats", "📊 Моя статистика"),
+        BotCommand("top", "🏆 Таблица лидеров"),
+        BotCommand("subscribe", "⏰ Подписка на вопрос дня"),
+    ]
+    await application.bot.set_my_commands(commands)
+    print("Командное меню успешно установлено.")
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Welcome message."""
     await update.message.reply_text(
         "Привет! 👋 Я твой личный ИИ-тренажер по программированию.\n\n"
-        "🚀 /quiz — начать викторину (выбор тем и сложности)\n"
-        "⚡️ /blitz — режим на скорость (20 сек на вопрос)\n"
-        "🔄 /errors — повторить вопросы, в которых ты ошибся\n"
-        "⏰ /subscribe — получать один вопрос каждый день\n"
-        "📊 /stats — твоя личная статистика\n"
-        "🏆 /top — таблица лидеров\n\n"
-        "Удачи в обучении!"
+        "Теперь все команды доступны в кнопке 'Меню' слева! ⬇️\n\n"
+        "Выбирай нужный режим и начинай прокачку."
     )
 
 async def show_categories(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -84,14 +93,18 @@ async def start_blitz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts blitz mode directly."""
     context.user_data["is_blitz"] = True
     context.user_data["temp_category"] = "all"
+    
+    # Simple message to show it started
+    msg = await update.message.reply_text("⚡️ Запускаю БЛИЦ-РЕЖИМ...")
+    
     # Create a dummy query-like object for logic
     class DummyQuery:
-        def __init__(self, update):
-            self.message = update.message
+        def __init__(self, msg):
+            self.message = msg
         async def edit_message_text(self, text):
-            await self.message.reply_text(text)
+            await self.message.edit_text(text)
     
-    await start_quiz_logic(DummyQuery(update), context, "any")
+    await start_quiz_logic(DummyQuery(msg), context, "any")
 
 async def start_quiz_logic(query, context, difficulty):
     category = context.user_data.get("temp_category", "all")
@@ -124,9 +137,10 @@ async def start_quiz_logic(query, context, difficulty):
     context.user_data["difficulty_name"] = difficulty
     
     mode_text = "⚡️ БЛИЦ" if is_blitz else f"{category.upper()} ({difficulty})"
-    msg = f"Начинаем! Режим: {mode_text} 🚀"
-    if hasattr(query, 'edit_message_text'): await query.edit_message_text(msg)
-    else: await query.message.reply_text(msg)
+    msg_text = f"Начинаем! Режим: {mode_text} 🚀"
+    
+    if hasattr(query, 'edit_message_text'): await query.edit_message_text(msg_text)
+    else: await query.message.reply_text(msg_text)
     
     await send_next_poll(context)
 
@@ -244,7 +258,7 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == "__main__":
     if not TOKEN: exit(1)
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("quiz", show_categories))
@@ -258,5 +272,5 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(difficulty_callback, pattern="^diff_"))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
     
-    print("Бот в режиме разработки (V3.0 Complete)...")
+    print("Бот в режиме разработки (Commands Menu added)...")
     app.run_polling()
