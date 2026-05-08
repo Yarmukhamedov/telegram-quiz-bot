@@ -10,6 +10,7 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     PollAnswerHandler,
+    PollHandler,
     CallbackQueryHandler,
 )
 from questions import QUIZ_DATA
@@ -85,8 +86,6 @@ async def difficulty_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     await query.answer()
     difficulty = query.data.replace("diff_", "")
-    
-    # Store message ID to delete it later
     context.user_data["menu_message_id"] = query.message.message_id
     await start_quiz_logic(query.message, context, difficulty)
 
@@ -99,6 +98,7 @@ async def start_blitz(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start_quiz_logic(message, context, difficulty):
     category = context.user_data.get("temp_category", "all")
     is_blitz = context.user_data.get("is_blitz", False)
+    user_id = message.chat_id # In private chats chat_id == user_id
     
     if category == "all":
         filtered = QUIZ_DATA
@@ -120,45 +120,41 @@ async def start_quiz_logic(message, context, difficulty):
     context.user_data["questions"] = user_questions
     context.user_data["current_question"] = 0
     context.user_data["score"] = 0
-    context.user_data["chat_id"] = message.chat_id
+    context.user_data["chat_id"] = user_id
+    context.user_data["user_id"] = user_id
     context.user_data["category_name"] = "blitz" if is_blitz else category
     context.user_data["difficulty_name"] = difficulty
     
-    # DELETE the menu message to avoid "jumping"
     menu_id = context.user_data.get("menu_message_id")
     if menu_id:
-        try:
-            await context.bot.delete_message(chat_id=message.chat_id, message_id=menu_id)
-        except:
-            pass
+        try: await context.bot.delete_message(chat_id=user_id, message_id=menu_id)
+        except: pass
 
     await send_next_poll(context)
 
 async def start_errors_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Starts errors quiz."""
     chat_id = update.effective_chat.id
     error_texts = get_user_errors(chat_id)
     if not error_texts:
         await update.message.reply_text("Ошибок нет! ✨")
         return
-    
     error_questions = [q for q in QUIZ_DATA if q["question"] in error_texts]
     random.shuffle(error_questions)
-    
     context.user_data["questions"] = error_questions[:10]
     context.user_data["current_question"] = 0
     context.user_data["score"] = 0
     context.user_data["chat_id"] = chat_id
+    context.user_data["user_id"] = chat_id
     context.user_data["category_name"] = "errors"
     context.user_data["difficulty_name"] = "review"
     context.user_data["is_blitz"] = False
-    
     await send_next_poll(context)
 
 async def send_next_poll(context: ContextTypes.DEFAULT_TYPE):
     index = context.user_data.get("current_question", 0)
     questions = context.user_data.get("questions", [])
     chat_id = context.user_data.get("chat_id")
+    user_id = context.user_data.get("user_id")
     is_blitz = context.user_data.get("is_blitz", False)
 
     if not questions or index >= len(questions):
@@ -182,35 +178,115 @@ async def send_next_poll(context: ContextTypes.DEFAULT_TYPE):
             is_anonymous=False,
             open_period=open_period,
         )
+        # Store metadata to track poll progress
         context.bot_data[message.poll.id] = {
             "chat_id": chat_id,
+            "user_id": user_id,
             "correct_option_id": question_data["correct_index"],
-            "question_text": question_data["question"]
+            "question_text": question_data["question"],
+            "question_index": index
         }
     except Exception as e:
         logging.error(f"Error: {e}")
         await send_next_poll(context)
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles when user actually clicks an answer."""
     answer = update.poll_answer
     poll_info = context.bot_data.get(answer.poll_id)
     if not poll_info: return
 
-    user_id = answer.user.id
-    context.user_data["username"] = answer.user.first_name
+    user_id = poll_info["user_id"]
+    user_data = context.application.user_data.get(user_id)
+    if not user_data: return
+
+    # Check if we already processed this question (to avoid double trigger from PollHandler)
+    if user_data.get("current_question") != poll_info["question_index"]:
+        return
+
     question_text = poll_info["question_text"]
+    user_data["username"] = answer.user.first_name
 
     if answer.option_ids and answer.option_ids[0] == poll_info["correct_option_id"]:
-        context.user_data["score"] = context.user_data.get("score", 0) + 1
+        user_data["score"] = user_data.get("score", 0) + 1
         remove_wrong_answer(user_id, question_text)
     else:
         add_wrong_answer(user_id, question_text)
 
-    context.user_data["current_question"] = context.user_data.get("current_question", 0) + 1
-    await send_next_poll(context)
+    user_data["current_question"] += 1
+    
+    # Remove poll from memory and move to next
+    context.bot_data.pop(answer.poll_id, None)
+    
+    # We need a new context-like object for the next poll call since we are in a different handler
+    # Actually, we can just use a helper function that takes user_data
+    await send_next_poll_custom(context, user_data)
 
-# ... (rest of functions like subscribe, stats, top stay same) ...
+async def handle_poll_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles when poll state changes (e.g. closed by timer)."""
+    poll = update.poll
+    if not poll.is_closed:
+        return
 
+    poll_info = context.bot_data.get(poll.id)
+    if not poll_info:
+        return
+
+    user_id = poll_info["user_id"]
+    user_data = context.application.user_data.get(user_id)
+    if not user_data:
+        return
+
+    # If time ran out and user didn't answer
+    if user_data.get("current_question") == poll_info["question_index"]:
+        # Count as wrong answer
+        add_wrong_answer(user_id, poll_info["question_text"])
+        user_data["current_question"] += 1
+        
+        context.bot_data.pop(poll.id, None)
+        await send_next_poll_custom(context, user_data)
+
+async def send_next_poll_custom(context, user_data):
+    """Helper to send next poll using stored user_data."""
+    # We temporarily inject user_data into a dummy context to reuse send_next_poll logic
+    # Or just write a slightly more flexible version
+    index = user_data.get("current_question", 0)
+    questions = user_data.get("questions", [])
+    chat_id = user_data.get("chat_id")
+    is_blitz = user_data.get("is_blitz", False)
+
+    if not questions or index >= len(questions):
+        score = user_data.get("score", 0)
+        update_user_stats(chat_id, user_data.get("username", "User"), score, len(questions), 
+                         user_data.get("category_name"), user_data.get("difficulty_name"))
+        await context.bot.send_message(chat_id=chat_id, text=f"🏁 Окончено! Результат: {score}/{len(questions)}.")
+        return
+
+    question_data = questions[index]
+    open_period = 20 if is_blitz else None
+
+    try:
+        message = await context.bot.send_poll(
+            chat_id=chat_id,
+            question=f"[{index + 1}/{len(questions)}] {question_data['question']}",
+            options=question_data["options"],
+            type=Poll.QUIZ,
+            correct_option_id=question_data["correct_index"],
+            explanation=question_data["explanation"],
+            is_anonymous=False,
+            open_period=open_period,
+        )
+        context.bot_data[message.poll.id] = {
+            "chat_id": chat_id,
+            "user_id": user_data.get("user_id"),
+            "correct_option_id": question_data["correct_index"],
+            "question_text": question_data["question"],
+            "question_index": index
+        }
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
+# ... (stats, top, subscribe stay same) ...
 async def daily_question(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
     question_data = random.choice(QUIZ_DATA)
@@ -236,13 +312,13 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
     top_users = get_top_users()
     if not top_users: return
     text = "🏆 Топ лидеров:\n\n"
-    for i, (name, score) in enumerate(top_users, 1):
-        text += f"{i}. {name} — {score}\n"
+    for i, (name, score) in enumerate(top_users, 1): text += f"{i}. {name} — {score}\n"
     await update.message.reply_text(text)
 
 if __name__ == "__main__":
     if not TOKEN: exit(1)
     app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
+    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("quiz", show_categories))
     app.add_handler(CommandHandler("blitz", start_blitz))
@@ -250,8 +326,13 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("top", top))
     app.add_handler(CommandHandler("subscribe", subscribe))
+    
     app.add_handler(CallbackQueryHandler(category_callback, pattern="^cat_"))
     app.add_handler(CallbackQueryHandler(difficulty_callback, pattern="^diff_"))
-    app.add_handler(PollAnswerHandler(handle_poll_answer))
-    print("Бот в разработке (Fix Jumping)...")
+    
+    # Handlers for Polls
+    app.add_handler(PollAnswerHandler(handle_poll_answer)) # When user answers
+    app.add_handler(PollHandler(handle_poll_update))     # When poll state changes (e.g. timeout)
+    
+    print("Бот в разработке (Blitz Timeout Fixed)...")
     app.run_polling()
