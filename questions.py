@@ -1,4 +1,5 @@
 QUIZ_DATA = [
+    # --- EXISTING QUESTIONS (1-35) ---
     {
         "question": "Что такое IDE?",
         "options": ["Интегрированная среда разработки", "Тип ОС", "Команда терминала", "Язык программирования"],
@@ -107,7 +108,7 @@ QUIZ_DATA = [
         "question": "Что делает команда 'git push'?",
         "options": ["Скачивает изменения", "Отправляет локальные коммиты в облако", "Удаляет проект", "Создает новый файл"],
         "correct_index": 1,
-        "explanation": "Push 'выталкивает' ваши сохраненные изменения на сервер (например, GitHub.",
+        "explanation": "Push 'выталкивает' ваши сохраненные изменения на сервер (например, GitHub).",
         "category": "git",
         "difficulty": "medium"
     },
@@ -278,5 +279,335 @@ QUIZ_DATA = [
         "explanation": "Команда man (manual) открывает встроенную документацию.",
         "category": "terminal",
         "difficulty": "easy"
+    },
+
+    # --- NEW QUESTIONS (36-80+) ---
+    {
+        "question": "Как создать новую ветку в Git?",
+        "options": ["git branch-new", "git checkout -b", "git add-branch", "git commit -b"],
+        "correct_index": 1,
+        "explanation": "Команда git checkout -b [имя] создает новую ветку и сразу переключается на неё.",
+        "category": "git",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает команда 'git stash'?",
+        "options": ["Удаляет все файлы", "Временно прячет незавершенные изменения", "Отправляет код на сервер", "Создает коммит"],
+        "correct_index": 1,
+        "explanation": "Stash позволяет сохранить изменения в 'кармане', чтобы вернуться к ним позже.",
+        "category": "git",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как объединить ветку 'feature' с текущей?",
+        "options": ["git combine feature", "git join feature", "git merge feature", "git pull feature"],
+        "correct_index": 2,
+        "explanation": "git merge используется для слияния веток.",
+        "category": "git",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Какой тип данных в Python является неизменяемым?",
+        "options": ["List", "Dictionary", "Tuple", "Set"],
+        "correct_index": 2,
+        "explanation": "Tuple (кортеж) нельзя изменить после создания, в отличие от списков.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как в Python добавить элемент в конец списка?",
+        "options": ["list.add()", "list.push()", "list.append()", "list.insert()"],
+        "correct_index": 2,
+        "explanation": "Метод append() добавляет один элемент в конец существующего списка.",
+        "category": "python",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что выведет print(type([]))?",
+        "options": ["<class 'tuple'>", "<class 'dict'>", "<class 'list'>", "<class 'set'>"],
+        "correct_index": 2,
+        "explanation": "Квадратные скобки [] создают объект класса list.",
+        "category": "python",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Для чего используется 'pip freeze > requirements.txt'?",
+        "options": ["Для запуска программы", "Для сохранения списка всех установленных библиотек", "Для удаления Python", "Для очистки кеша"],
+        "correct_index": 1,
+        "explanation": "Это стандартный способ сохранить зависимости проекта для других разработчиков.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'лямбда-функция' в Python?",
+        "options": ["Сложная математическая функция", "Анонимная функция в одну строку", "Функция для работы с файлами", "Системная ошибка"],
+        "correct_index": 1,
+        "explanation": "Lambda — это короткий способ написать небольшую функцию без имени.",
+        "category": "python",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как изменить права файла на 'чтение и запись для всех'?",
+        "options": ["chmod 777", "chmod 444", "chmod 000", "chmod 111"],
+        "correct_index": 0,
+        "explanation": "777 дает полные права (rwx) владельцу, группе и остальным.",
+        "category": "terminal",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Что делает символ '|' (pipe) в терминале?",
+        "options": ["Останавливает команду", "Передает вывод одной команды на вход другой", "Разделяет файлы", "Удаляет пробелы"],
+        "correct_index": 1,
+        "explanation": "Конвейер позволяет связывать команды в цепочки (например, ls | grep 'txt').",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает команда 'echo $HOME'?",
+        "options": ["Выводит текст '$HOME'", "Выводит путь к домашней директории пользователя", "Очищает домашнюю папку", "Создает папку HOME"],
+        "correct_index": 1,
+        "explanation": "$ указывает на переменную окружения. $HOME хранит путь к профилю пользователя.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как в CSS сделать Flex-контейнер?",
+        "options": ["display: block", "display: flex", "type: flex", "position: flex"],
+        "correct_index": 1,
+        "explanation": "Свойство display со значением flex превращает элемент в гибкий контейнер.",
+        "category": "html_css",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Какое свойство Flexbox выравнивает элементы по главной оси?",
+        "options": ["align-items", "justify-content", "align-content", "flex-direction"],
+        "correct_index": 1,
+        "explanation": "justify-content отвечает за горизонтальное выравнивание (по умолчанию).",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое семантический тег в HTML?",
+        "options": ["Тег, который меняет цвет", "Тег, описывающий смысл контента (<header>, <article>)", "Скрытый тег для SEO", "Тег для вставки кода"],
+        "correct_index": 1,
+        "explanation": "Семантика помогает поисковикам и скринридерам понимать структуру сайта.",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как сделать текст жирным в CSS?",
+        "options": ["font-style: bold", "text-weight: bold", "font-weight: bold", "font-bold: true"],
+        "correct_index": 2,
+        "explanation": "font-weight регулирует толщину шрифта.",
+        "category": "html_css",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Какая команда создаст SSH-ключ?",
+        "options": ["ssh-add", "ssh-keygen", "ssh-create", "ssh-new"],
+        "correct_index": 1,
+        "explanation": "ssh-keygen генерирует пару из публичного и приватного ключей.",
+        "category": "ssh",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое файл '~/.ssh/config'?",
+        "options": ["Вирус", "Файл для настройки быстрых подключений к серверам", "Справочник команд SSH", "Список всех паролей"],
+        "correct_index": 1,
+        "explanation": "В этом файле можно прописать алиасы для серверов, чтобы подключаться просто через 'ssh myserver'.",
+        "category": "ssh",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как подключиться к серверу по SSH, если он работает на порту 2222?",
+        "options": ["ssh -p 2222 user@host", "ssh user@host:2222", "ssh -port 2222 user@host", "ssh --p 2222 user@host"],
+        "correct_index": 0,
+        "explanation": "Флаг -p (маленькая p) используется для указания порта в SSH.",
+        "category": "ssh",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Что такое 'swap' в операционных системах?",
+        "options": ["Быстрый процессор", "Файл или раздел подкачки на диске при нехватке RAM", "Замена видеокарты", "Команда для перезагрузки"],
+        "correct_index": 1,
+        "explanation": "Swap используется системой, когда оперативная память (RAM) полностью заполнена.",
+        "category": "os",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Какая комбинация клавиш обычно закрывает процесс в терминале?",
+        "options": ["Ctrl + C", "Ctrl + Z", "Ctrl + X", "Ctrl + V"],
+        "correct_index": 0,
+        "explanation": "Ctrl + C посылает сигнал прерывания (SIGINT) активному процессу.",
+        "category": "terminal",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что означает 'localhost'?",
+        "options": ["Чужой сервер", "Ваш собственный компьютер (IP 127.0.0.1)", "Локальная сеть провайдера", "Сайт в интернете"],
+        "correct_index": 1,
+        "explanation": "Localhost — это стандартное имя для обращения к самому себе в сети.",
+        "category": "os",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Как в Python проверить, есть ли ключ в словаре?",
+        "options": ["if key in dict:", "if dict.has(key):", "if key exists in dict:", "if key is in dict:"],
+        "correct_index": 0,
+        "explanation": "Оператор 'in' — самый быстрый и правильный способ проверки ключа.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает 'git fetch'?",
+        "options": ["Скачивает изменения и объединяет их", "Просто скачивает информацию о новых коммитах без слияния", "Удаляет ветку", "Создает копию проекта"],
+        "correct_index": 1,
+        "explanation": "Fetch обновляет данные о сервере, но не меняет ваш локальный код (в отличие от pull).",
+        "category": "git",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Как в CSS задать расстояние между границей элемента и его содержимым?",
+        "options": ["margin", "padding", "border-spacing", "gap"],
+        "correct_index": 1,
+        "explanation": "Padding — это внутренний отступ, margin — внешний.",
+        "category": "html_css",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что делает команда 'df -h' в терминале?",
+        "options": ["Показывает свободное место на дисках в удобном виде", "Удаляет историю команд", "Форматирует диск", "Выводит список папок"],
+        "correct_index": 0,
+        "explanation": "df (disk free) с флагом -h (human-readable) показывает объем дисков в Гб/Мб.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'f-строки' в Python?",
+        "options": ["Файловые строки", "Форматированные строки с префиксом f", "Строки с ошибками", "Функциональные строки"],
+        "correct_index": 1,
+        "explanation": "f-строки (например, f'Hello {name}') позволяют удобно вставлять переменные в текст.",
+        "category": "python",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Как в Git отменить последний коммит, сохранив изменения в файлах?",
+        "options": ["git reset --hard HEAD~1", "git reset --soft HEAD~1", "git delete commit", "git undo"],
+        "correct_index": 1,
+        "explanation": "--soft HEAD~1 удаляет запись о коммите, но оставляет ваш код нетронутым.",
+        "category": "git",
+        "difficulty": "hard"
+    },
+    {
+        "question": "Что делает команда 'cat file.txt'?",
+        "options": ["Удаляет файл", "Выводит содержимое файла в терминал", "Создает копию файла", "Редактирует файл"],
+        "correct_index": 1,
+        "explanation": "cat (concatenate) используется для быстрого просмотра содержимого файлов.",
+        "category": "terminal",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Как в HTML сделать нумерованный список?",
+        "options": ["<ul>", "<list>", "<ol>", "<nl>"],
+        "correct_index": 2,
+        "explanation": "<ol> (ordered list) создает список с цифрами, <ul> — с точками.",
+        "category": "html_css",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что такое 'z-index' в CSS?",
+        "options": ["Размер шрифта", "Порядок наслоения элементов (кто выше, кто ниже)", "Скорость анимации", "Тип прозрачности"],
+        "correct_index": 1,
+        "explanation": "Z-index определяет, какой элемент будет перекрывать другой по оси Z.",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Какая команда в терминале позволяет искать файлы по имени?",
+        "options": ["search", "find", "lookup", "locate"],
+        "correct_index": 1,
+        "explanation": "Команда find — стандартный инструмент поиска файлов и папок.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что делает команда 'history'?",
+        "options": ["Показывает дату", "Выводит список последних введенных команд", "Очищает компьютер", "Удаляет куки"],
+        "correct_index": 1,
+        "explanation": "History позволяет быстро найти и повторить команду, которую вы вводили ранее.",
+        "category": "terminal",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что такое 'virtualenv' (или venv) в Python?",
+        "options": ["Виртуальный компьютер", "Изолированная среда для библиотек проекта", "Облачное хранилище", "Антивирус для кода"],
+        "correct_index": 1,
+        "explanation": "Venv позволяет разным проектам иметь разные версии библиотек и не конфликтовать.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как в Git посмотреть историю всех коммитов?",
+        "options": ["git history", "git show", "git log", "git list"],
+        "correct_index": 2,
+        "explanation": "git log выводит список всех сделанных изменений с авторами и датами.",
+        "category": "git",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что делает команда 'cp -r folder1 folder2'?",
+        "options": ["Удаляет папку", "Рекурсивно копирует папку со всем содержимым", "Переименовывает папку", "Перемещает папку"],
+        "correct_index": 1,
+        "explanation": "Флаг -r (recursive) обязателен для копирования папок.",
+        "category": "terminal",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что выведет print(10 // 3) в Python?",
+        "options": ["3.333", "3", "4", "1"],
+        "correct_index": 1,
+        "explanation": "// — это оператор целочисленного деления.",
+        "category": "python",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Какая команда в терминале показывает, кто залогинен в системе?",
+        "options": ["who", "users", "whoami", "me"],
+        "correct_index": 2,
+        "explanation": "whoami выводит имя текущего пользователя.",
+        "category": "terminal",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Что такое 'id_rsa' (без расширения .pub)?",
+        "options": ["Ваш публичный ключ", "Ваш секретный (приватный) ключ SSH", "Название папки", "Файл с логами"],
+        "correct_index": 1,
+        "explanation": "Это приватный ключ. Его НЕЛЬЗЯ передавать никому, иначе доступ к вашим серверам будет открыт.",
+        "category": "ssh",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Как в CSS прижать элемент к правому краю экрана (старый способ)?",
+        "options": ["align: right", "float: right", "move: right", "margin-right: 0"],
+        "correct_index": 1,
+        "explanation": "Float когда-то был основным способом позиционирования, сейчас чаще используют Flexbox.",
+        "category": "html_css",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что такое 'коммит' (commit) в Git?",
+        "options": ["Копия проекта", "Сохраненный снимок изменений с описанием", "Удаление файлов", "Ошибка в коде"],
+        "correct_index": 1,
+        "explanation": "Коммит фиксирует текущее состояние проекта в истории версий.",
+        "category": "git",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Как запустить Python-скрипт в фоновом режиме в Linux?",
+        "options": ["python bot.py --background", "python bot.py &", "start python bot.py", "run bot.py"],
+        "correct_index": 1,
+        "explanation": "Символ & в конце команды запускает её в фоновом режиме терминала.",
+        "category": "terminal",
+        "difficulty": "hard"
     }
 ]
