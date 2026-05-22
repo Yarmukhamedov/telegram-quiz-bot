@@ -24,9 +24,25 @@ from database import (
     get_user_errors
 )
 
-# Setup proxy for PythonAnywhere environment
-os.environ['http_proxy'] = "http://proxy.server:3128"
-os.environ['https_proxy'] = "http://proxy.server:3128"
+from threading import Thread
+from flask import Flask
+
+# Flask server to keep bot alive on Render
+flask_app = Flask('')
+
+@flask_app.route('/')
+def home():
+    return "Бот активен и работает!"
+
+def run_server():
+    # Render sets PORT environment variable automatically
+    port = int(os.environ.get("PORT", 8080))
+    flask_app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run_server)
+    t.daemon = True
+    t.start()
 
 # Load environment variables
 load_dotenv()
@@ -248,5 +264,7 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(difficulty_callback, pattern="^diff_"))
     app.add_handler(PollAnswerHandler(handle_poll_answer))
     
-    print("Бот запущен на PythonAnywhere (V3.2 Final Stable with Dynamic Categories!)...")
+    print("Запуск Flask-сервера...")
+    keep_alive()
+    print("Бот запущен на Render (24/7 с UptimeRobot)...")
     app.run_polling(drop_pending_updates=True)
