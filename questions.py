@@ -1063,5 +1063,83 @@ QUIZ_DATA = [
         "explanation": "Конструкция if let (или if var) безопасно проверяет наличие значения в опционале. Если значение есть, оно временно извлекается в константу/переменную, которая доступна внутри фигурных скобок.",
         "category": "swift",
         "difficulty": "medium"
+    },
+    {
+        "question": "Что возвращает выражение 'text?.count', если опциональная переменная 'text' равна nil?",
+        "options": [
+            "0",
+            "nil",
+            "Ошибка компиляции",
+            "Критический сбой приложения во время выполнения"
+        ],
+        "correct_index": 1,
+        "explanation": "При использовании опциональной цепочки ?. (Optional Chaining), если объект слева равен nil, все выражение возвращает nil, не вызывая ошибок и сбоев.",
+        "category": "swift",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Для чего нужен оператор '??' (Nil Coalescing) в Swift?",
+        "options": [
+            "Для принудительного извлечения значения с гарантией отсутствия nil",
+            "Для предоставления дефолтного (запасного) значения в случае, если опционал равен nil",
+            "Для сравнения двух опциональных объектов между собой",
+            "Для очистки переменной и присвоения ей nil"
+        ],
+        "correct_index": 1,
+        "explanation": "Оператор ?? (nil-coalescing) проверяет значение слева: если оно не nil, то используется оно; если оно nil, возвращается значение справа.",
+        "category": "swift",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Каким будет результат выполнения выражения 'password?.count ?? 0', если 'password' равен nil?",
+        "options": [
+            "nil",
+            "0",
+            "Ошибка компиляции",
+            "Сбой программы (Fatal error)"
+        ],
+        "correct_index": 1,
+        "explanation": "Так как password равен nil, выражение password?.count вернет nil. Оператор ?? перехватит этот nil и вернет указанное справа дефолтное значение 0.",
+        "category": "swift",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Какую ошибку выведет среда выполнения (Runtime), если попытаться извлечь значение из переменной 'var age: Int? = nil' через принудительное извлечение 'age!'?",
+        "options": [
+            "NullPointerException",
+            "Fatal error: Unexpectedly found nil while unwrapping an Optional value",
+            "Compile Error: Cannot unwrap nil value",
+            "Никакой ошибки, программа автоматически продолжит работу и выведет 0"
+        ],
+        "correct_index": 1,
+        "explanation": "Force unwrapping (!) переменной со значением nil вызывает критическую ошибку времени выполнения: 'Fatal error: Unexpectedly found nil while unwrapping an Optional value'.",
+        "category": "swift",
+        "difficulty": "medium"
+    },
+    {
+        "question": "Что выведет код: 'var score: Int? = 50; print(score)'?",
+        "options": [
+            "50",
+            "Optional(50)",
+            "nil",
+            "Ошибка компиляции"
+        ],
+        "correct_index": 1,
+        "explanation": "Переменная score является опциональной, поэтому ее значение обернуто в контейнер. Без распаковки (unwrapping) функция print выведет 'Optional(50)'.",
+        "category": "swift",
+        "difficulty": "easy"
+    },
+    {
+        "question": "Каким официальным термином в Swift называется конструкция безопасного извлечения значения вида 'if let name = name'?",
+        "options": [
+            "Optional Chaining",
+            "Optional Binding",
+            "Forced Unwrapping",
+            "Nil Coalescing"
+        ],
+        "correct_index": 1,
+        "explanation": "Конструкция безопасной проверки и извлечения значения опционала с помощью 'if let' или 'if var' в Swift называется Optional Binding (связывание опционалов).",
+        "category": "swift",
+        "difficulty": "easy"
     }
 ]
